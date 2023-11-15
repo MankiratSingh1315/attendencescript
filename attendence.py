@@ -1,5 +1,6 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import pandas as pd
 
 file_name = 'attendence.json'
 scope = ['https://spreadsheets.google.com/feeds',
@@ -11,12 +12,10 @@ client = gspread.authorize(creds)
 sheet = client.open('attendence').sheet1 # google sheet name
 python_sheet = sheet.get_all_records()
 
-import pandas as pd
-dataframe1 = pd.read_excel('atten.xlsx') # Excel file of attendence
-for i in range(len(dataframe1)):
-    for j in range(len(python_sheet)):
-        if dataframe1['Names'][i] == python_sheet[j]['Name']:
-            sheet.update_cell(j+2, 3, 'Present') # attendence marker
-            break
-        else:
-            continue
+df_main = pd.DataFrame(python_sheet)
+date = pd.to_datetime("today").strftime("%m/%d/%Y")
+df = pd.read_excel('atten.xlsx') # Excel file of attendence
+df[date] = 'Present'
+
+df_main.merge(df,how = 'left',on = 'Name')
+
